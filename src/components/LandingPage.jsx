@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { arbitrumSepolia } from "thirdweb/chains";
 import {
   ConnectButton,
@@ -9,7 +9,7 @@ import {
 } from "thirdweb/react";
 import { client, contract } from "../lib/thirdweb";
 import { toast } from "react-toastify";
-import { prepareContractCall } from "thirdweb";
+import { prepareContractCall, readContract } from "thirdweb";
 import LoadingOverlay from "./Loading";
 
 const LandingPage = () => {
@@ -20,7 +20,7 @@ const LandingPage = () => {
   const [walletAddress, setWalletAddress] = useState("");
   //   console.log("🚀 ~ LandingPage ~ walletAddress:", walletAddress)
   const [investmentAmount, setInvestmentAmount] = useState("");
-
+  const [pool, setPool] = useState();
   const [isLoading, setIsLoading] = useState(false);
   const [status, setStatus] = useState("");
   const [poolName, setPoolName] = useState();
@@ -96,39 +96,32 @@ const LandingPage = () => {
     return result;
   };
   //   ---------------------------------------
-  const PoolDetails = (poolId) => {
-    const { data, isLoading } = useReadContract({
+  const PoolDetails = async (poolId) => {
+    const data = await readContract({
       contract,
       method:
         "function pools(uint256) view returns (string name, uint256 endTime, address borrower, uint256 totalDeposited, bool transferred)",
       params: [BigInt(poolId)],
     });
-
-    return (
-      <div>
-        <p>Pool Name: {data?.name}</p>
-        <p>
-          End Time: {new Date(Number(data?.endTime) * 1000).toLocaleString()}
-        </p>
-        <p>Borrower: {data?.borrower}</p>
-        <p>Total Deposited: {data?.totalDeposited?.toString()}</p>
-        <p>Transferred: {data?.transferred ? "Yes" : "No"}</p>
-      </div>
-    );
+    return data;
   };
   //   ---------------------------------------
-  const poolCount = () => {
-    const { data, isLoading } = useReadContract({
-      contract,
-      method: "getPoolCount",
-    });
-
-    return <div>Total Pools: {data?.toString()}</div>;
+  const poolCount = async () => {
+    try {
+      const data = await readContract({
+        contract,
+        method: "function getPoolCount() view returns (uint256)",
+      });
+      console.log("🚀 ~ poolCount ~ data:", data);
+      return data?.toString();
+    } catch (error) {
+      console.error("Error reading contract:", error);
+      throw error;
+    }
   };
-
   //   ---------------------------------------
   const UserDeposit = (poolId, userAddress) => {
-    const { data, isLoading } = useReadContract({
+    const { data, isLoading } = readContract({
       contract,
       method: "function deposits(uint256, address) view returns (uint256)",
       params: [BigInt(poolId), userAddress],
@@ -150,156 +143,19 @@ const LandingPage = () => {
     }
 
     try {
-      // Don't convert endTime to BigInt here since it's already done in getForCreatePool
       const res = await getForCreatePool(
         poolName,
         endTime, // Remove BigInt conversion here
         userAccount?.address
       );
-
       console.log("🚀 ~ handleCreatePool ~ res:", res);
-      console.log("🚀 ~ res type:", typeof res);
-      console.log(
-        "🚀 ~ res keys:",
-        res ? Object.keys(res) : "res is null/undefined"
-      );
-      console.log(
-        "🚀 ~ has wait method:",
-        res && typeof res.wait === "function"
-      );
-      console.log("🚀 ~ has logs property:", res && res.logs);
-
-      // More flexible handling of different response types
-      let receipt;
-
-      if (res && typeof res.wait === "function") {
-        // res is a transaction object, wait for receipt
-        console.log("Waiting for transaction receipt...");
-        receipt = await res.wait();
-      } else if (res && res.logs) {
-        // res is already a receipt
-        console.log("Using response as receipt directly");
-        receipt = res;
-      } else if (res && res.receipt) {
-        // res might have a receipt property
-        console.log("Using nested receipt property");
-        receipt = res.receipt;
-      } else if (res && res.transactionHash) {
-        // res has transactionHash, we need to get the receipt manually
-        console.log("Getting receipt for transaction:", res.transactionHash);
-        setStatus("Waiting for transaction confirmation...");
-
-        // If using ethers or web3, you might need to get receipt like this:
-        // receipt = await provider.getTransactionReceipt(res.transactionHash);
-
-        // For thirdweb, you might already have the receipt in the response
-        if (res.receipt) {
-          receipt = res.receipt;
-        } else {
-          // Assume the transaction was successful if we have a hash
-          console.log("Transaction hash received:", res.transactionHash);
-          setIsLoading(false);
-          setStatus("Pool creation transaction sent");
-          toast.success(`Transaction sent: ${res.transactionHash}`, {
-            position: "top-right",
-          });
-          return;
-        }
-      } else {
-        console.log("Unknown response format:", res);
-        // For now, let's assume the transaction was successful but we can't parse events
-        setIsLoading(false);
-        setStatus("Pool creation completed (unable to verify)");
-        toast.success("Pool creation transaction sent", {
+      if (res) {
+        setStatus(`Pool Created Successfully - ID: ${res}`);
+        toast.success(`Pool created successfully! Pool ID: ${res}`, {
           position: "top-right",
         });
-        return;
       }
-
-      console.log("🚀 ~ receipt:", receipt);
-
-      // Check if receipt has logs
-      if (!receipt || !receipt.logs) {
-        console.log("No logs found in receipt");
-        setIsLoading(false);
-        setStatus("Pool created (no events to parse)");
-        toast.success("Pool creation completed", {
-          position: "top-right",
-        });
-        return;
-      }
-
-      const logs = receipt.logs;
-
-      let poolCreated = false;
-      let newPoolId = null;
-
-      for (const log of logs) {
-        try {
-          console.log("Processing log:", log);
-
-          // Try different ways to parse the log
-          let parsed;
-          if (contract.interface && contract.interface.parseLog) {
-            // ethers v5/v6 style
-            parsed = contract.interface.parseLog(log);
-          } else if (contract.abi && contract.abi.parseLog) {
-            // Some other library style
-            parsed = contract.abi.parseLog(log);
-          } else {
-            // Manual parsing - look for PoolCreated event topic
-            // You might need to adjust this based on your contract ABI
-            console.log("Manual log parsing - topics:", log.topics);
-            console.log("Manual log parsing - data:", log.data);
-
-            // Skip manual parsing for now and continue to next log
-            continue;
-          }
-
-          console.log("Parsed log:", parsed);
-
-          if (parsed && parsed.name === "PoolCreated") {
-            console.log("Found PoolCreated event:", parsed.args);
-            newPoolId = parsed.args.poolId || parsed.args[0]; // poolId might be first argument
-
-            if (newPoolId) {
-              // Convert BigInt to string if necessary
-              if (typeof newPoolId === "bigint") {
-                newPoolId = newPoolId.toString();
-              }
-              setPoolId(newPoolId);
-              poolCreated = true;
-              console.log("Pool ID extracted:", newPoolId);
-              break;
-            }
-          }
-        } catch (e) {
-          // Ignore logs that can't be parsed
-          console.log("Could not parse log:", e);
-        }
-      }
-
-      // Update state after the loop
       setIsLoading(false);
-      if (poolCreated && newPoolId) {
-        setStatus(`Pool Created Successfully - ID: ${newPoolId}`);
-        toast.success(`Pool created successfully! Pool ID: ${newPoolId}`, {
-          position: "top-right",
-        });
-      } else if (receipt.transactionHash) {
-        setStatus("Pool creation completed");
-        toast.success("Pool created successfully!", {
-          position: "top-right",
-        });
-      } else {
-        setStatus("Pool creation completed but no PoolCreated event found");
-        toast.warning(
-          "Pool creation completed but confirmation event not found",
-          {
-            position: "top-right",
-          }
-        );
-      }
     } catch (error) {
       console.log("🚀 ~ handleCreatePool ~ error:", error);
       toast.error("Error Creating Pool");
@@ -339,6 +195,34 @@ const LandingPage = () => {
     }
   };
 
+  //   ----------------------------------------
+  const fetchPoolDetails = async () => {
+    try {
+      const poolCounts = await poolCount();
+
+      const poolDetails = [];
+      for (let i = 0; i < poolCounts; i++) {
+        setPoolId(i);
+        const details = await PoolDetails(i);
+        poolDetails.push(details);
+      }
+      console.log("🚀 ~ fetchPoolDetails ~ poolDetails:", poolDetails);
+      setPool(poolDetails);
+
+      console.log("🚀 ~ fetchPoolDetails ~ poolCount:", poolDetails);
+    } catch (error) {
+      console.error("🚀 ~ fetchPoolDetails ~ error:", error);
+      toast.error("Error fetching pool count", {
+        position: "top-right",
+      });
+    }
+  };
+
+  useEffect(() => {
+    fetchPoolDetails();
+  }, []);
+  // ----------------------------------------
+
   const Header = () => {
     return (
       <nav className="fixed top-0 w-full z-50 bg-black/20 backdrop-blur-lg border-b border-white/10">
@@ -359,6 +243,12 @@ const LandingPage = () => {
                 className="text-white/80 hover:text-white transition-colors"
               >
                 Create Pool
+              </a>
+              <a
+                href="#pools"
+                className="text-white/80 hover:text-white transition-colors"
+              >
+                Pools
               </a>
               <a
                 href="#features"
@@ -618,6 +508,304 @@ const LandingPage = () => {
       </section>
     );
   };
+
+  const PoolsSection = () => {
+    const formatDate = (timestamp) => {
+      // Convert BigInt to Number
+      const time =
+        typeof timestamp === "bigint" ? Number(timestamp) : timestamp;
+      return new Date(time * 1000).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    };
+
+    const formatAddress = (address) => {
+      return `${address.slice(0, 6)}...${address.slice(-4)}`;
+    };
+
+    const getStatusColor = (status) => {
+      switch (status) {
+        case "Active":
+          return "from-green-500/20 to-emerald-500/20 border-green-500/30 text-green-300";
+        case "Completed":
+          return "from-blue-500/20 to-cyan-500/20 border-blue-500/30 text-blue-300";
+        case "Expired":
+          return "from-red-500/20 to-pink-500/20 border-red-500/30 text-red-300";
+        default:
+          return "from-gray-500/20 to-gray-600/20 border-gray-500/30 text-gray-300";
+      }
+    };
+
+    const getTimeRemaining = (endTime) => {
+      const now = new Date();
+      // Convert BigInt to Number if necessary
+      const end = new Date(Number(endTime) * 1000);
+      const diff = end - now;
+
+      if (diff <= 0) return "Expired";
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor(
+        (diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+      );
+
+      if (days > 0) return `${days}d ${hours}h left`;
+      return `${hours}h left`;
+    };
+
+    return (
+      <section
+        id="pools"
+        className="min-h-screen py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden"
+      >
+        {/* Animated background elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse delay-1000"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-indigo-500 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-pulse delay-500"></div>
+        </div>
+
+        {/* Floating particles */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          {[...Array(15)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute w-2 h-2 bg-white rounded-full opacity-20 animate-pulse"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 3}s`,
+                animationDuration: `${2 + Math.random() * 3}s`,
+              }}
+            ></div>
+          ))}
+        </div>
+
+        <div className="max-w-7xl mx-auto relative z-10">
+          {/* Header */}
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 bg-purple-500/20 backdrop-blur-sm border border-purple-500/30 rounded-full px-4 py-2 mb-6">
+              <span className="text-purple-200 text-sm font-medium">
+                Active Pools
+              </span>
+            </div>
+
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
+              Discover
+              <span className="block bg-gradient-to-r from-purple-400 via-pink-500 to-blue-500 bg-clip-text text-transparent">
+                Investment Pools
+              </span>
+            </h2>
+
+            <p className="text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
+              Join exciting betting pools created by the community. Find your
+              favorite events and start winning.
+            </p>
+          </div>
+
+          {/* Filters */}
+          <div className="flex flex-wrap justify-center gap-4 mb-12">
+            {["All", "Active", "Completed", "My Pools"].map((filter) => (
+              <button
+                key={filter}
+                className={`px-6 py-3 rounded-full font-medium transition-all duration-300 ${
+                  filter === "All"
+                    ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg"
+                    : "bg-white/10 text-gray-300 hover:bg-white/20 hover:text-white"
+                }`}
+              >
+                {filter}
+              </button>
+            ))}
+          </div>
+
+          {/* Stats Bar */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
+            <div className="bg-white/10 backdrop-blur-xl rounded-xl p-6 border border-white/20 text-center">
+              <div className="text-2xl font-bold text-purple-400 mb-2">
+                {pool?.length}
+              </div>
+              <div className="text-gray-300 text-sm">Total Pools</div>
+            </div>
+            <div className="bg-white/10 backdrop-blur-xl rounded-xl p-6 border border-white/20 text-center">
+              <div className="text-2xl font-bold text-green-400 mb-2">
+                {/* {pool?.filter((p) => p.status === "Active").length} */}
+                {
+                  pool?.map((p) => p.filter((pool, index) => index === 3))
+                    .length
+                }
+              </div>
+              <div className="text-gray-300 text-sm">Active Pools</div>
+            </div>
+            <div className="bg-white/10 backdrop-blur-xl rounded-xl p-6 border border-white/20 text-center">
+              <div className="text-2xl font-bold text-cyan-400 mb-2">$54</div>
+              <div className="text-gray-300 text-sm">Total ETH Locked</div>
+            </div>
+            <div className="bg-white/10 backdrop-blur-xl rounded-xl p-6 border border-white/20 text-center">
+              <div className="text-2xl font-bold text-pink-400 mb-2">54%</div>
+              <div className="text-gray-300 text-sm">Total Participants</div>
+            </div>
+          </div>
+
+          {/* Pools Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {pool?.map((pool, index) => {
+              const [name, endTime, borrower, totalDeposited, transferred] =
+                pool;
+              return (
+                <div
+                  key={index}
+                  className="bg-white/10 backdrop-blur-xl rounded-2xl p-8 border border-white/20 hover:bg-white/15 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl group"
+                >
+                  {/* Pool Header */}
+                  <div className="flex justify-between items-start mb-6">
+                    <div>
+                      <h3 className="text-xl font-bold text-white mb-2 group-hover:text-purple-300 transition-colors">
+                        {name || "No Name"}
+                      </h3>
+                      <div
+                        className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r ${getStatusColor(
+                          pool.status
+                        )}`}
+                      >
+                        <div className="w-2 h-2 rounded-full bg-current mr-2 animate-pulse"></div>
+                        {pool.status}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-2xl font-bold text-white">
+                        #{index}
+                      </div>
+                      <div className="text-sm text-gray-400">Pool ID</div>
+                    </div>
+                  </div>
+
+                  {/* Pool Stats */}
+                  <div className="grid grid-cols-2 gap-4 mb-6">
+                    <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl p-4 border border-purple-500/30">
+                      <div className="text-2xl font-bold text-white mb-1">
+                        {totalDeposited || 0}
+                      </div>
+                      <div className="text-purple-300 text-sm">
+                        ETH Deposited
+                      </div>
+                    </div>
+                    <div className="bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-xl p-4 border border-blue-500/30">
+                      <div className="text-2xl font-bold text-white mb-1">
+                        {pool.participants}/{pool.maxParticipants}
+                      </div>
+                      <div className="text-blue-300 text-sm">Participants</div>
+                    </div>
+                  </div>
+
+                  {/* Progress Bar */}
+                  <div className="mb-6">
+                    <div className="flex justify-between text-sm text-gray-300 mb-2">
+                      <span>Participation</span>
+                      <span>
+                        {Math.round(
+                          (pool.participants / pool.maxParticipants) * 100
+                        )}
+                        %
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-700 rounded-full h-2">
+                      <div
+                        className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all duration-500"
+                        style={{
+                          width: `${
+                            (pool.participants / pool.maxParticipants) * 100
+                          }%`,
+                        }}
+                      ></div>
+                    </div>
+                  </div>
+
+                  {/* Pool Details */}
+                  <div className="space-y-3 mb-6">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-300">Creator:</span>
+                      <span className="text-white font-mono text-sm">
+                        {formatAddress(borrower)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-300">End Time:</span>
+                      <span className="text-white text-sm">
+                        {formatDate(endTime)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-300">Time Left:</span>
+                      <span
+                        className={`font-medium text-sm ${
+                          getTimeRemaining(endTime) === "Expired"
+                            ? "text-red-400"
+                            : "text-green-400"
+                        }`}
+                      >
+                        {getTimeRemaining(endTime)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-300">Transferred:</span>
+                      <span
+                        className={`font-medium text-sm ${
+                          transferred
+                            ? "text-green-400"
+                            : "text-yellow-400"
+                        }`}
+                      >
+                        {transferred ? "Yes" : "Pending"}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-3">
+                    <button className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-transparent">
+                      Join Pool
+                    </button>
+                    {/* <button className="px-6 py-3 bg-white/10 hover:bg-white/20 text-gray-300 hover:text-white border border-white/20 rounded-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-white/50">
+                      View Details
+                    </button> */}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Load More Button */}
+          <div className="text-center mt-12">
+            <button className="bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-700 hover:to-purple-700 text-white font-semibold py-4 px-8 rounded-xl transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 focus:ring-offset-transparent">
+              Load More Pools
+            </button>
+          </div>
+
+          {/* Empty State (if no pools) */}
+          {pool?.length === 0 && (
+            <div className="text-center py-20">
+              <div className="text-6xl mb-6">🎲</div>
+              <h3 className="text-2xl font-bold text-white mb-4">
+                No Pools Found
+              </h3>
+              <p className="text-gray-300 mb-8">
+                Be the first to create a betting pool!
+              </p>
+              <button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105">
+                Create First Pool
+              </button>
+            </div>
+          )}
+        </div>
+      </section>
+    );
+  };
+
   const HeroSection = () => {
     return (
       <section
@@ -1003,6 +1191,9 @@ const LandingPage = () => {
 
         {/* Create Pool Section */}
         <CreatePoolSection />
+
+        {/* Pools Section */}
+        <PoolsSection />
 
         {/* Features Section */}
         <FeaturesSection />
