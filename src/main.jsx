@@ -10,15 +10,13 @@ import { BrowserRouter } from "react-router-dom";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <BrowserRouter>
-      <ThirdwebProvider
-        activeChain={arbitrumSepolia}
-        autoConnect={true}
-        client={client}
-      >
-        <ToastContainer />
-        <App />
-      </ThirdwebProvider>
-    </BrowserRouter>
+    <ThirdwebProvider
+      activeChain={arbitrumSepolia}
+      autoConnect={true}
+      client={client}
+    >
+      <ToastContainer />
+      <App />
+    </ThirdwebProvider>
   </StrictMode>
 );
