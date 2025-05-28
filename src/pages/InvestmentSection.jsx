@@ -1,9 +1,15 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useActiveAccount, useSendTransaction } from "thirdweb/react";
-import { getForApproval, getForDeposit } from "../lib/contract-funtion";
+import {
+  getForApproval,
+  getForDeposit,
+  getUserBalance,
+} from "../lib/contract-funtion";
 import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import LoadingOverlay from "../components/Loading";
+import { client } from "../lib/thirdweb";
+import { getWalletBalance } from "thirdweb/wallets";
 
 const InvestmentSection = () => {
   const { mutateAsync: sentTrx } = useSendTransaction();
@@ -18,6 +24,21 @@ const InvestmentSection = () => {
   const [investmentAmount, setInvestmentAmount] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [status, setStatus] = useState("");
+  const [userBalance, setUserBalance] = useState(0);
+
+  useEffect(() => {
+    const getBalance = async () => {
+      const balance = await getWalletBalance({
+        address: userAccount?.address,
+        client,
+        chain,
+      });
+
+      console.log("Native Balance:", balance.displayValue, balance.symbol);
+      setUserBalance(balance.displayValue);
+    };
+    getBalance();
+  }, []);
 
   debugger;
   const handleInvestment = async (e) => {
@@ -80,8 +101,9 @@ const InvestmentSection = () => {
           <div className="bg-white/5 backdrop-blur-lg border border-white/10 rounded-3xl p-8 sm:p-12">
             <form onSubmit={handleInvestment} className="space-y-6">
               <div>
-                <label className="block text-white font-medium mb-3 text-lg">
-                  Investment Amount (ETH)
+                <label className="block text-white font-medium mb-3 text-lg flex justify-between">
+                  <span> Investment Amount (ETH)</span>
+                  <span> Your Balance: {userBalance} ASH</span>
                 </label>
                 <div className="relative">
                   <input

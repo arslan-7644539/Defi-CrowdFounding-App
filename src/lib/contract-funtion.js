@@ -96,3 +96,12 @@ export const UserDeposit = async (poolId, userAddress) => {
   return data?.toString();
 };
 // -----------------------------
+
+export const getUserBalance = async (userAddress) => {
+  const data = await readContract({
+    contract,
+    method: "function balanceOf(address) view returns (uint256)",
+    params: [userAddress],
+  });
+  return data?.toString();
+};
