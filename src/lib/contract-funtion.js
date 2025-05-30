@@ -1,5 +1,6 @@
-import { prepareContractCall, readContract } from "thirdweb";
-import { contract } from "./thirdweb";
+import { getContract, prepareContractCall, readContract } from "thirdweb";
+import { client, contract } from "./thirdweb";
+import { arbitrumSepolia } from "thirdweb/chains";
 // -------write function----------------------
 export const getForCreatePool = async (name, endTime, borrower) => {
   // Convert datetime string to Unix timestamp (seconds since epoch)
@@ -34,7 +35,7 @@ export const getForDeposit = async (poolId, amount) => {
   const goForDeposit = prepareContractCall({
     contract,
     method: "function deposit(uint256, uint256)",
-    params: [BigInt(poolId), BigInt(amount)],
+    params: [BigInt(poolId), amount],
   });
   return goForDeposit;
 };
@@ -42,10 +43,16 @@ export const getForDeposit = async (poolId, amount) => {
 // ----------------------------
 
 export const getForApproval = async (spenderAddress, amount) => {
+  const tokkenApproval = getContract({
+    client: client,
+    chain: arbitrumSepolia,
+    address: import.meta.env.VITE_COINS_ADDRESS,
+  });
+
   const approval = prepareContractCall({
-    contract,
+    contract: tokkenApproval,
     method: "function approve(address spender, uint256 amount)",
-    params: [spenderAddress, BigInt(amount)],
+    params: [spenderAddress, amount],
   });
 
   return approval;
@@ -60,6 +67,11 @@ export const TransferToBorrowerButton = async (poolId) => {
   });
   return transferToBorrower;
 };
+
+
+
+
+
 
 // -------read function----------------------
 export const PoolDetails = async (poolId) => {
@@ -79,7 +91,7 @@ export const poolCount = async () => {
       contract,
       method: "function getPoolCount() view returns (uint256)",
     });
-    console.log("🚀 ~ poolCount ~ data:", data);
+    // console.log("🚀 ~ poolCount ~ data:", data);
     return data?.toString();
   } catch (error) {
     console.error("Error reading contract:", error);
@@ -103,5 +115,30 @@ export const getUserBalance = async (userAddress) => {
     method: "function balanceOf(address) view returns (uint256)",
     params: [userAddress],
   });
+  return data?.toString();
+};
+
+// export const getParticipantCount = async (poolId) => {
+//   const data = await readContract({
+//     contract,
+//     method:
+//       "function getParticipantCount(uint256 poolId) view validPool(poolId) returns (uint256)",
+//     params: [BigInt(poolId)],
+//   });
+//   return data?.toString();
+// };
+
+export const getParticipantCount = async (poolId) => {
+  if (poolId === undefined || poolId === null) {
+    throw new Error("Invalid poolId");
+  }
+
+  const data = await readContract({
+    contract,
+    method: "getParticipantCount",
+    // method: "getParticipants",
+    params: [BigInt(poolId)],
+  });
+
   return data?.toString();
 };

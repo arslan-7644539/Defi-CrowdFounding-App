@@ -30,7 +30,7 @@ const CreatePoolSection = () => {
       await sentTrx(res);
       console.log("🚀 ~ handleCreatePool ~ res:", res);
       if (res) {
-        setStatus(`Pool Created Successfully - ID: ${res}`);
+        // setStatus(`Pool Created Successfully - ID: ${res}`);
         toast.success(`Pool created successfully! Pool ID: ${res}`, {
           position: "top-right",
         });

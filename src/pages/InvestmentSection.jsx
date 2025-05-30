@@ -10,16 +10,31 @@ import { toast } from "react-toastify";
 import LoadingOverlay from "../components/Loading";
 import { client } from "../lib/thirdweb";
 import { getWalletBalance } from "thirdweb/wallets";
+import { toUnits, toWei, waitForReceipt } from "thirdweb";
+import { arbitrumSepolia } from "thirdweb/chains";
 
 const InvestmentSection = () => {
   const { mutateAsync: sentTrx } = useSendTransaction();
-  // const spenderAddress = import.meta.env.VITE_CONTRACT_ADDRESS;
-  const spenderAddress = "0x0E6812eB99C5AF9dDDCCd8e0A7E914DaFF29FE0F";
+  const spenderAddress = import.meta.env.VITE_CONTRACT_ADDRESS;
+  // const spenderAddress = "0x6dd50b3313b57232bd7039b1cee3cb09b032a608  ";
+
+  function convertToWei(amount) {
+    try {
+      // Thirdweb v5 mein toWei function use karo
+      return toWei(amount.toString());
+
+      // Ya manual BigInt method:
+      // return BigInt(Math.floor(parseFloat(amount) * 1e18));
+    } catch (error) {
+      console.log("Wei conversion error:", error);
+      throw new Error("Invalid amount for conversion");
+    }
+  }
 
   const { id } = useParams();
-  console.log("🚀 ~ InvestmentSection ~ id:", id);
+  // console.log("🚀 ~ InvestmentSection ~ id:", id);
   const userAccount = useActiveAccount();
-  console.log("🚀 ~ LandingPage ~ userAccount:", userAccount);
+  // console.log("🚀 ~ LandingPage ~ userAccount:", userAccount);
 
   const [investmentAmount, setInvestmentAmount] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -40,43 +55,108 @@ const InvestmentSection = () => {
     getBalance();
   }, []);
 
-  debugger;
+  // debugger;
   const handleInvestment = async (e) => {
-    debugger;
     e.preventDefault();
     setIsLoading(true);
     setStatus("Investing...");
 
+    console.log("🐱‍🏍checking user account is active or not");
+
+    // check if the user is connected
     if (!userAccount?.address) {
       toast.error("please connect your wallet", {
         position: "top-right",
       });
+      setIsLoading(false);
       return;
     }
+    console.log("✔ user account is active");
+
+    console.log("🐱‍🏍 checking investment amount is valid or not");
+
+    // check if the investment amount is valid
+    if (!investmentAmount || parseFloat(investmentAmount) <= 0) {
+      toast.error("Invalid amount", {
+        position: "top-right",
+      });
+      setIsLoading(false);
+      return;
+    }
+    console.log("✔ investment amount is valid");
+
     try {
-      const approvalChecking = await getForApproval(
-        spenderAddress,
-        investmentAmount
-      );
-      await sentTrx(approvalChecking);
+      // const amount = convertToWei(investmentAmount.toString());
+      const amount = toUnits(investmentAmount, 18);
+      console.log("🚀 ~ handleInvestment ~ amount:", amount.toString());
+
+      console.log("🐱‍🏍 checking approval");
+      const approvalChecking = await getForApproval(spenderAddress, amount);
       console.log(
         "🚀 ~ handleInvestment ~ approvalChecking:",
         approvalChecking
       );
-      const result = await getForDeposit(id, investmentAmount);
-      await sentTrx(result);
-      console.log("🚀 ~ handleInvestment ~ result:", result);
+      const approvalRequest = await sentTrx(approvalChecking);
+      console.log("🚀 ~ handleInvestment ~ approvalRequest:", approvalRequest);
 
-      console.log(`Invested amount: ${investmentAmount}`);
-      toast.success(`Invested amount: ${investmentAmount}`);
+      // wait for 2 seconds
+      // await new Promise((resolve) => setTimeout(resolve, 2000));
+      setStatus("Waiting for approval confirmation...");
+      await waitForReceipt({
+        client: client, // Your thirdweb client
+        chain: arbitrumSepolia, // Your chain
+        transactionHash: approvalRequest?.transactionHash,
+      });
+
+      console.log("✔ Approval confirmed");
+
+      console.log("🐱‍🏍 getting for deposit");
+      const result = await getForDeposit(id, amount);
+      console.log("🐱‍🏍 sending transaction");
+      const transactionResult = await sentTrx(result);
+      console.log(
+        "🚀 ~ handleInvestment ~ transactionResult:",
+        transactionResult
+      );
+      console.log("🐱‍🏍 transaction sent");
+
+      setStatus("Waiting for transaction confirmation...");
+      await waitForReceipt({
+        client: client,
+        chain: arbitrumSepolia,
+        transactionHash: transactionResult?.transactionHash,
+      });
+
+      // console.log("🚀 ~ handleInvestment ~ result:", result);
+      console.log(" ✔ transaction sent");
+
+      console.log(
+        `Invested amount: ${investmentAmount} converted to ASH${amount}`
+      );
+      toast.success(
+        `Investment successful: ${investmentAmount} converted to ASH${amount}`,
+        {
+          position: "top-right",
+        }
+      );
       setInvestmentAmount("");
       setIsLoading(false);
-      toast.success("Investment successful", {
-        position: "top-right",
-      });
     } catch (error) {
       console.log("🚀 ~ handleInvestment ~ error:", error);
-      toast.error("Error Investing");
+      if (error.message.includes("insufficient allowance")) {
+        toast.error("Token approval failed", {
+          position: "top-right",
+        });
+      } else if (error.message.includes("insufficient balance")) {
+        toast.error("Insufficient balance", {
+          position: "top-right",
+        });
+      } else {
+        toast.error("Investment failed", {
+          position: "top-right",
+        });
+      }
+    } finally {
       setIsLoading(false);
       setStatus("Error Investing");
     }
@@ -86,7 +166,7 @@ const InvestmentSection = () => {
     <>
       <LoadingOverlay isLoading={isLoading} status={status} />
       <section id="invest" className="py-20 px-4 sm:px-6 lg:px-8">
-        <p className="text-white text-2xl font-bold">Pool ID: {id}</p>
+        {/* <p className="text-white text-2xl font-bold">Pool ID: {id}</p> */}
 
         <div className="max-w-2xl mx-auto">
           <div className="text-center mb-12">
