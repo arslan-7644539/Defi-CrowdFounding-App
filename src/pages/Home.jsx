@@ -31,7 +31,7 @@ const Home = () => {
           <div className="pt-8">
             <div className="inline-block p-1 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-xl">
               <div className="bg-black rounded-lg px-2 py-1">
-                <ConnectButton
+                {/* <ConnectButton
                   chain={arbitrumSepolia}
                   client={client}
                   theme="dark"
@@ -45,7 +45,7 @@ const Home = () => {
                       padding: "12px 32px",
                     },
                   }}
-                />
+                /> */}
               </div>
               
 
