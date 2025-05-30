@@ -12,6 +12,7 @@ export const getForCreatePool = async (name, endTime, borrower) => {
     throw new Error("End time must be in the future");
   }
 
+  // Calculate the Unix timestamp
   const endTimeTimestamp = Math.floor(endTimeDate.getTime() / 1000);
   const currentTimestamp = Math.floor(currentTime.getTime() / 1000);
 

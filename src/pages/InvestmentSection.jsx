@@ -10,29 +10,16 @@ import { toast } from "react-toastify";
 import LoadingOverlay from "../components/Loading";
 import { client } from "../lib/thirdweb";
 import { getWalletBalance } from "thirdweb/wallets";
-import { toUnits, toWei, waitForReceipt } from "thirdweb";
+import { toTokens, toUnits, toWei, waitForReceipt } from "thirdweb";
 import { arbitrumSepolia } from "thirdweb/chains";
 
 const InvestmentSection = () => {
   const { mutateAsync: sentTrx } = useSendTransaction();
   const spenderAddress = import.meta.env.VITE_CONTRACT_ADDRESS;
-  // const spenderAddress = "0x6dd50b3313b57232bd7039b1cee3cb09b032a608  ";
-
-  function convertToWei(amount) {
-    try {
-      // Thirdweb v5 mein toWei function use karo
-      return toWei(amount.toString());
-
-      // Ya manual BigInt method:
-      // return BigInt(Math.floor(parseFloat(amount) * 1e18));
-    } catch (error) {
-      console.log("Wei conversion error:", error);
-      throw new Error("Invalid amount for conversion");
-    }
-  }
 
   const { id } = useParams();
   // console.log("🚀 ~ InvestmentSection ~ id:", id);
+
   const userAccount = useActiveAccount();
   // console.log("🚀 ~ LandingPage ~ userAccount:", userAccount);
 
@@ -43,17 +30,35 @@ const InvestmentSection = () => {
 
   useEffect(() => {
     const getBalance = async () => {
-      const balance = await getWalletBalance({
-        address: userAccount?.address,
-        client,
-        chain,
-      });
+      try {
+        if (!userAccount?.address) {
+          toast.error("please connect your wallet", {
+            position: "top-right",
+          });
+          // If no user account, set user balance to zer
+          setUserBalance(0);
+          return;
+        }
 
-      console.log("Native Balance:", balance.displayValue, balance.symbol);
-      setUserBalance(balance.displayValue);
+        const balance = await getWalletBalance({
+          address: userAccount?.address,
+          client: client,
+          chain: arbitrumSepolia,
+        });
+
+        console.log("Native Balance:", balance?.displayValue, balance?.symbol);
+
+        // Format balance to show max 4 decimal places for better readability
+        const formattedBalance = parseFloat(balance?.displayValue).toFixed(4);
+        setUserBalance(formattedBalance);
+      } catch (error) {
+        console.error("Error fetching balance:", error);
+        setUserBalance(0);
+      }
     };
+
     getBalance();
-  }, []);
+  }, [userAccount?.address]);
 
   // debugger;
   const handleInvestment = async (e) => {
@@ -181,9 +186,9 @@ const InvestmentSection = () => {
           <div className="bg-white/5 backdrop-blur-lg border border-white/10 rounded-3xl p-8 sm:p-12">
             <form onSubmit={handleInvestment} className="space-y-6">
               <div>
-                <label className="block text-white font-medium mb-3 text-lg flex justify-between">
+                <label className=" text-white font-medium mb-3 text-lg flex justify-between">
                   <span> Investment Amount (ETH)</span>
-                  <span> Your Balance: {userBalance} ASH</span>
+                  <span> Your Balance: {userBalance} ETH</span>
                 </label>
                 <div className="relative">
                   <input

@@ -18,8 +18,8 @@ import LoadingOverlay from "../components/Loading";
 
 const ShowPoolSection = () => {
   const { mutateAsync: sentTrx } = useSendTransaction();
-  // fetch owner address
 
+  // fetch owner address
   const { data: ownerAddress } = useReadContract({
     contract: contract,
     method: "function owner() view returns (address)",
@@ -401,7 +401,7 @@ const ShowPoolSection = () => {
                       </span>
                     </div>
                     {/* amount sent to borrower */}
-                    {isOwner ? (
+                    {ownerAddress === userAddress?.address && (
                       <button
                         disabled={!isOwner || isLoading}
                         class={` ${
@@ -413,8 +413,6 @@ const ShowPoolSection = () => {
                       >
                         {isLoading ? "Transferring..." : "Transfer Amount"}
                       </button>
-                    ) : (
-                      ""
                     )}
 
                     {/* ---------------------- */}

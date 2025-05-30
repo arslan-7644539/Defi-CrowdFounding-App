@@ -20,6 +20,13 @@ const CreatePoolSection = () => {
       setIsLoading(false); // Reset loading state
       return;
     }
+    if (!endTime) {
+      toast.error("Please select end time", {
+        position: "top-right",
+      });
+      setIsLoading(false); // Reset loading state
+      return;
+    }
 
     try {
       const res = await getForCreatePool(
@@ -124,6 +131,7 @@ const CreatePoolSection = () => {
                       Buy-in Amount
                     </label>
                     <input
+                      disabled
                       type="number"
                       id="buyIn"
                       name="buyIn"
