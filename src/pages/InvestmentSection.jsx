@@ -27,6 +27,7 @@ const InvestmentSection = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [status, setStatus] = useState("");
   const [userBalance, setUserBalance] = useState(0);
+  const [balanceSymbol, setBalanceSymbol] = useState();
 
   useEffect(() => {
     const getBalance = async () => {
@@ -51,6 +52,7 @@ const InvestmentSection = () => {
         // Format balance to show max 4 decimal places for better readability
         const formattedBalance = parseFloat(balance?.displayValue).toFixed(4);
         setUserBalance(formattedBalance);
+        setBalanceSymbol(balance?.symbol)
       } catch (error) {
         console.error("Error fetching balance:", error);
         setUserBalance(0);
@@ -187,8 +189,8 @@ const InvestmentSection = () => {
             <form onSubmit={handleInvestment} className="space-y-6">
               <div>
                 <label className=" text-white font-medium mb-3 text-lg flex justify-between">
-                  <span> Investment Amount (ETH)</span>
-                  <span> Your Balance: {userBalance} ETH</span>
+                  <span> Investment Amount ({balanceSymbol})</span>
+                  <span> Your Balance: {userBalance} {balanceSymbol}</span>
                 </label>
                 <div className="relative">
                   <input

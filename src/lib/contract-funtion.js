@@ -69,11 +69,6 @@ export const TransferToBorrowerButton = async (poolId) => {
   return transferToBorrower;
 };
 
-
-
-
-
-
 // -------read function----------------------
 export const PoolDetails = async (poolId) => {
   const data = await readContract({
@@ -119,15 +114,7 @@ export const getUserBalance = async (userAddress) => {
   return data?.toString();
 };
 
-// export const getParticipantCount = async (poolId) => {
-//   const data = await readContract({
-//     contract,
-//     method:
-//       "function getParticipantCount(uint256 poolId) view validPool(poolId) returns (uint256)",
-//     params: [BigInt(poolId)],
-//   });
-//   return data?.toString();
-// };
+
 
 export const getParticipantCount = async (poolId) => {
   if (poolId === undefined || poolId === null) {
