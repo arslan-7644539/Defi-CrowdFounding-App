@@ -7,6 +7,7 @@ import CreatePoolSection from "../pages/CreatePool";
 import FeaturesSection from "../pages/FeaturesSection";
 import Footer from "../pages/Footer";
 import ShowPoolSection from "../pages/ShowPoolSection";
+import VerifySignMsg from "../pages/VeriySignMsg";
 
 const Router = () => {
   return useRoutes([
@@ -17,6 +18,10 @@ const Router = () => {
     {
       path: "/about",
       element: <About />,
+    },
+    {
+      path: "/verify-sign-msg",
+      element: <VerifySignMsg />,
     },
 
     {

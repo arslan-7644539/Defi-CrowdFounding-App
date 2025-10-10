@@ -109,7 +109,7 @@ const Header = () => {
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <div className="flex-shrink-0">
-              <Link 
+              <Link
                 to="/"
                 className="text-xl sm:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400 hover:from-cyan-300 hover:to-purple-300 transition-all duration-200"
               >
@@ -121,11 +121,10 @@ const Header = () => {
             <div className="hidden lg:flex items-center space-x-6 xl:space-x-8">
               <Link
                 to="/"
-                className={`px-2 py-1 transition-all duration-200 ${
-                  isActive("/home")
+                className={`px-2 py-1 transition-all duration-200 ${isActive("/home")
                     ? "text-white font-medium border-b-2 border-cyan-400"
                     : "text-white/80 hover:text-white hover:scale-105"
-                }`}
+                  }`}
               >
                 Home
               </Link>
@@ -135,17 +134,15 @@ const Header = () => {
                 <button
                   ref={buttonRef}
                   onClick={toggleDropdown}
-                  className={`flex items-center space-x-1 px-2 py-1 transition-all duration-200 ${
-                    isDropdownActive()
+                  className={`flex items-center space-x-1 px-2 py-1 transition-all duration-200 ${isDropdownActive()
                       ? "text-white font-medium border-b-2 border-cyan-400"
                       : "text-white/80 hover:text-white hover:scale-105"
-                  }`}
+                    }`}
                 >
                   <span>Pools</span>
                   <svg
-                    className={`w-4 h-4 transition-transform duration-200 ${
-                      isDropdownOpen ? "rotate-180" : ""
-                    }`}
+                    className={`w-4 h-4 transition-transform duration-200 ${isDropdownOpen ? "rotate-180" : ""
+                      }`}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -167,11 +164,10 @@ const Header = () => {
                     <div className="py-2">
                       <Link
                         to="/create-pool"
-                        className={`block px-4 py-3 transition-all duration-200 ${
-                          isActive("/create-pool")
+                        className={`block px-4 py-3 transition-all duration-200 ${isActive("/create-pool")
                             ? "text-white bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border-l-2 border-cyan-400"
                             : "text-white/80 hover:text-white hover:bg-white/10 hover:translate-x-1"
-                        }`}
+                          }`}
                         onClick={closeDropdown}
                       >
                         <div className="flex items-center">
@@ -193,11 +189,10 @@ const Header = () => {
                       </Link>
                       <Link
                         to="/pools"
-                        className={`block px-4 py-3 transition-all duration-200 ${
-                          isActive("/pools")
+                        className={`block px-4 py-3 transition-all duration-200 ${isActive("/pools")
                             ? "text-white bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border-l-2 border-cyan-400"
                             : "text-white/80 hover:text-white hover:bg-white/10 hover:translate-x-1"
-                        }`}
+                          }`}
                         onClick={closeDropdown}
                       >
                         <div className="flex items-center">
@@ -224,13 +219,21 @@ const Header = () => {
 
               <Link
                 to="/about"
-                className={`px-2 py-1 transition-all duration-200 ${
-                  isActive("/about")
+                className={`px-2 py-1 transition-all duration-200 ${isActive("/about")
                     ? "text-white font-medium border-b-2 border-cyan-400"
                     : "text-white/80 hover:text-white hover:scale-105"
-                }`}
+                  }`}
               >
                 About
+              </Link>
+              <Link
+                to="/verify-sign-msg"
+                className={`px-2 py-1 transition-all duration-200 ${isActive("/verify-sign-msg")
+                    ? "text-white font-medium border-b-2 border-cyan-400"
+                    : "text-white/80 hover:text-white hover:scale-105"
+                  }`}
+              >
+                Verify Sign Messages
               </Link>
             </div>
 
@@ -326,11 +329,10 @@ const Header = () => {
       {/* Mobile Navigation Menu */}
       <div
         ref={mobileMenuRef}
-        className={`lg:hidden fixed top-16 right-0 bottom-0 z-50 w-full max-w-xs sm:max-w-sm transition-all duration-300 ease-in-out transform ${
-          isMobileMenuOpen
+        className={`lg:hidden fixed top-16 right-0 bottom-0 z-50 w-full max-w-xs sm:max-w-sm transition-all duration-300 ease-in-out transform ${isMobileMenuOpen
             ? "translate-x-0 opacity-100"
             : "translate-x-full opacity-0"
-        }`}
+          }`}
       >
         <div className="h-full bg-gradient-to-br from-black/95 via-purple-900/20 to-cyan-900/20 backdrop-blur-xl border-l border-white/20 shadow-2xl">
           <div className="h-full overflow-y-auto scrollbar-hide">
@@ -355,14 +357,13 @@ const Header = () => {
                 <h3 className="text-white/50 text-xs font-semibold uppercase tracking-wider mb-3">
                   Navigation
                 </h3>
-                
+
                 <Link
                   to="/"
-                  className={`flex items-center py-2.5 px-3 rounded-lg transition-all duration-200 group ${
-                    isActive("/home")
+                  className={`flex items-center py-2.5 px-3 rounded-lg transition-all duration-200 group ${isActive("/home")
                       ? "text-white bg-gradient-to-r from-cyan-500/30 to-purple-500/30 border-l-3 border-cyan-400 shadow-lg"
                       : "text-white/70 hover:text-white hover:bg-white/5 hover:translate-x-1"
-                  }`}
+                    }`}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   <svg
@@ -383,11 +384,10 @@ const Header = () => {
 
                 <Link
                   to="/about"
-                  className={`flex items-center py-2.5 px-3 rounded-lg transition-all duration-200 group ${
-                    isActive("/about")
+                  className={`flex items-center py-2.5 px-3 rounded-lg transition-all duration-200 group ${isActive("/about")
                       ? "text-white bg-gradient-to-r from-cyan-500/30 to-purple-500/30 border-l-3 border-cyan-400 shadow-lg"
                       : "text-white/70 hover:text-white hover:bg-white/5 hover:translate-x-1"
-                  }`}
+                    }`}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   <svg
@@ -412,14 +412,13 @@ const Header = () => {
                 <h3 className="text-white/50 text-xs font-semibold uppercase tracking-wider mb-3">
                   Pool Management
                 </h3>
-                
+
                 <Link
                   to="/create-pool"
-                  className={`flex items-center py-2.5 px-3 rounded-lg transition-all duration-200 group ${
-                    isActive("/create-pool")
+                  className={`flex items-center py-2.5 px-3 rounded-lg transition-all duration-200 group ${isActive("/create-pool")
                       ? "text-white bg-gradient-to-r from-cyan-500/30 to-purple-500/30 border-l-3 border-cyan-400 shadow-lg"
                       : "text-white/70 hover:text-white hover:bg-white/5 hover:translate-x-1"
-                  }`}
+                    }`}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   <svg
@@ -440,11 +439,10 @@ const Header = () => {
 
                 <Link
                   to="/pools"
-                  className={`flex items-center py-2.5 px-3 rounded-lg transition-all duration-200 group ${
-                    isActive("/pools")
+                  className={`flex items-center py-2.5 px-3 rounded-lg transition-all duration-200 group ${isActive("/pools")
                       ? "text-white bg-gradient-to-r from-cyan-500/30 to-purple-500/30 border-l-3 border-cyan-400 shadow-lg"
                       : "text-white/70 hover:text-white hover:bg-white/5 hover:translate-x-1"
-                  }`}
+                    }`}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   <svg

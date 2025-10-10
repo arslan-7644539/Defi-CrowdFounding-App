@@ -25,14 +25,14 @@ const App = () => {
           </Layout>
           
           {/* Features Section with consistent styling */}
-          <section className="py-20">
+          {/* <section className="py-20">
             <FeaturesSection />
-          </section>
+          </section> */}
 
           {/* Static Info Section with consistent styling */}
-          <section className="py-20">
+          {/* <section className="py-20">
             <StaticInfo />
-          </section>
+          </section> */}
         </div>
       </div>
     </BrowserRouter>

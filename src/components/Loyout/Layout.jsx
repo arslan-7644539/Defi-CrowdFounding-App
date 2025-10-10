@@ -11,7 +11,7 @@ const Layout = ({ children }) => {
         {/* Add padding-top to account for fixed header */}
         {children}
       </main>
-      <Footer />
+      {/* <Footer /> */}
     </>
   );
 };
