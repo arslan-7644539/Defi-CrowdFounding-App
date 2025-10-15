@@ -122,8 +122,8 @@ const Header = () => {
               <Link
                 to="/"
                 className={`px-2 py-1 transition-all duration-200 ${isActive("/home")
-                    ? "text-white font-medium border-b-2 border-cyan-400"
-                    : "text-white/80 hover:text-white hover:scale-105"
+                  ? "text-white font-medium border-b-2 border-cyan-400"
+                  : "text-white/80 hover:text-white hover:scale-105"
                   }`}
               >
                 Home
@@ -135,8 +135,8 @@ const Header = () => {
                   ref={buttonRef}
                   onClick={toggleDropdown}
                   className={`flex items-center space-x-1 px-2 py-1 transition-all duration-200 ${isDropdownActive()
-                      ? "text-white font-medium border-b-2 border-cyan-400"
-                      : "text-white/80 hover:text-white hover:scale-105"
+                    ? "text-white font-medium border-b-2 border-cyan-400"
+                    : "text-white/80 hover:text-white hover:scale-105"
                     }`}
                 >
                   <span>Pools</span>
@@ -165,8 +165,8 @@ const Header = () => {
                       <Link
                         to="/create-pool"
                         className={`block px-4 py-3 transition-all duration-200 ${isActive("/create-pool")
-                            ? "text-white bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border-l-2 border-cyan-400"
-                            : "text-white/80 hover:text-white hover:bg-white/10 hover:translate-x-1"
+                          ? "text-white bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border-l-2 border-cyan-400"
+                          : "text-white/80 hover:text-white hover:bg-white/10 hover:translate-x-1"
                           }`}
                         onClick={closeDropdown}
                       >
@@ -190,8 +190,8 @@ const Header = () => {
                       <Link
                         to="/pools"
                         className={`block px-4 py-3 transition-all duration-200 ${isActive("/pools")
-                            ? "text-white bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border-l-2 border-cyan-400"
-                            : "text-white/80 hover:text-white hover:bg-white/10 hover:translate-x-1"
+                          ? "text-white bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border-l-2 border-cyan-400"
+                          : "text-white/80 hover:text-white hover:bg-white/10 hover:translate-x-1"
                           }`}
                         onClick={closeDropdown}
                       >
@@ -220,8 +220,8 @@ const Header = () => {
               <Link
                 to="/about"
                 className={`px-2 py-1 transition-all duration-200 ${isActive("/about")
-                    ? "text-white font-medium border-b-2 border-cyan-400"
-                    : "text-white/80 hover:text-white hover:scale-105"
+                  ? "text-white font-medium border-b-2 border-cyan-400"
+                  : "text-white/80 hover:text-white hover:scale-105"
                   }`}
               >
                 About
@@ -229,11 +229,20 @@ const Header = () => {
               <Link
                 to="/verify-sign-msg"
                 className={`px-2 py-1 transition-all duration-200 ${isActive("/verify-sign-msg")
-                    ? "text-white font-medium border-b-2 border-cyan-400"
-                    : "text-white/80 hover:text-white hover:scale-105"
+                  ? "text-white font-medium border-b-2 border-cyan-400"
+                  : "text-white/80 hover:text-white hover:scale-105"
                   }`}
               >
                 Verify Sign Messages
+              </Link>
+              <Link
+                to="/calculate-profit"
+                className={`px-2 py-1 transition-all duration-200 ${isActive("/calculate-profit")
+                  ? "text-white font-medium border-b-2 border-cyan-400"
+                  : "text-white/80 hover:text-white hover:scale-105"
+                  }`}
+              >
+                Calculate Profits
               </Link>
             </div>
 
@@ -330,8 +339,8 @@ const Header = () => {
       <div
         ref={mobileMenuRef}
         className={`lg:hidden fixed top-16 right-0 bottom-0 z-50 w-full max-w-xs sm:max-w-sm transition-all duration-300 ease-in-out transform ${isMobileMenuOpen
-            ? "translate-x-0 opacity-100"
-            : "translate-x-full opacity-0"
+          ? "translate-x-0 opacity-100"
+          : "translate-x-full opacity-0"
           }`}
       >
         <div className="h-full bg-gradient-to-br from-black/95 via-purple-900/20 to-cyan-900/20 backdrop-blur-xl border-l border-white/20 shadow-2xl">
@@ -361,8 +370,8 @@ const Header = () => {
                 <Link
                   to="/"
                   className={`flex items-center py-2.5 px-3 rounded-lg transition-all duration-200 group ${isActive("/home")
-                      ? "text-white bg-gradient-to-r from-cyan-500/30 to-purple-500/30 border-l-3 border-cyan-400 shadow-lg"
-                      : "text-white/70 hover:text-white hover:bg-white/5 hover:translate-x-1"
+                    ? "text-white bg-gradient-to-r from-cyan-500/30 to-purple-500/30 border-l-3 border-cyan-400 shadow-lg"
+                    : "text-white/70 hover:text-white hover:bg-white/5 hover:translate-x-1"
                     }`}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
@@ -385,8 +394,8 @@ const Header = () => {
                 <Link
                   to="/about"
                   className={`flex items-center py-2.5 px-3 rounded-lg transition-all duration-200 group ${isActive("/about")
-                      ? "text-white bg-gradient-to-r from-cyan-500/30 to-purple-500/30 border-l-3 border-cyan-400 shadow-lg"
-                      : "text-white/70 hover:text-white hover:bg-white/5 hover:translate-x-1"
+                    ? "text-white bg-gradient-to-r from-cyan-500/30 to-purple-500/30 border-l-3 border-cyan-400 shadow-lg"
+                    : "text-white/70 hover:text-white hover:bg-white/5 hover:translate-x-1"
                     }`}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
@@ -416,8 +425,8 @@ const Header = () => {
                 <Link
                   to="/create-pool"
                   className={`flex items-center py-2.5 px-3 rounded-lg transition-all duration-200 group ${isActive("/create-pool")
-                      ? "text-white bg-gradient-to-r from-cyan-500/30 to-purple-500/30 border-l-3 border-cyan-400 shadow-lg"
-                      : "text-white/70 hover:text-white hover:bg-white/5 hover:translate-x-1"
+                    ? "text-white bg-gradient-to-r from-cyan-500/30 to-purple-500/30 border-l-3 border-cyan-400 shadow-lg"
+                    : "text-white/70 hover:text-white hover:bg-white/5 hover:translate-x-1"
                     }`}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
@@ -440,8 +449,8 @@ const Header = () => {
                 <Link
                   to="/pools"
                   className={`flex items-center py-2.5 px-3 rounded-lg transition-all duration-200 group ${isActive("/pools")
-                      ? "text-white bg-gradient-to-r from-cyan-500/30 to-purple-500/30 border-l-3 border-cyan-400 shadow-lg"
-                      : "text-white/70 hover:text-white hover:bg-white/5 hover:translate-x-1"
+                    ? "text-white bg-gradient-to-r from-cyan-500/30 to-purple-500/30 border-l-3 border-cyan-400 shadow-lg"
+                    : "text-white/70 hover:text-white hover:bg-white/5 hover:translate-x-1"
                     }`}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >

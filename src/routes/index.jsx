@@ -8,6 +8,7 @@ import FeaturesSection from "../pages/FeaturesSection";
 import Footer from "../pages/Footer";
 import ShowPoolSection from "../pages/ShowPoolSection";
 import VerifySignMsg from "../pages/VeriySignMsg";
+import YieldCalculator from "../pages/YieldCalculator";
 
 const Router = () => {
   return useRoutes([
@@ -22,6 +23,10 @@ const Router = () => {
     {
       path: "/verify-sign-msg",
       element: <VerifySignMsg />,
+    },
+    {
+      path: "/calculate-profit",
+      element: <YieldCalculator />,
     },
 
     {
