@@ -45,6 +45,7 @@ const InvestmentSection = () => {
           address: userAccount?.address,
           client: client,
           chain: arbitrumSepolia,
+          // token:0x0E6812eB99C5AF9dDDCCd8e0A7E914DaFF29FE0F
         });
 
         console.log("Native Balance:", balance?.displayValue, balance?.symbol);
@@ -52,7 +53,7 @@ const InvestmentSection = () => {
         // Format balance to show max 4 decimal places for better readability
         const formattedBalance = parseFloat(balance?.displayValue).toFixed(4);
         setUserBalance(formattedBalance);
-        setBalanceSymbol(balance?.symbol)
+        setBalanceSymbol(balance?.symbol);
       } catch (error) {
         console.error("Error fetching balance:", error);
         setUserBalance(0);
@@ -94,7 +95,7 @@ const InvestmentSection = () => {
 
     try {
       // const amount = convertToWei(investmentAmount.toString());
-      const amount = toUnits(investmentAmount, 18);
+      const amount = toUnits(investmentAmount, 18); // convert to decimal value
       console.log("🚀 ~ handleInvestment ~ amount:", amount.toString());
 
       console.log("🐱‍🏍 checking approval");
@@ -190,7 +191,10 @@ const InvestmentSection = () => {
               <div>
                 <label className=" text-white font-medium mb-3 text-lg flex justify-between">
                   <span> Investment Amount ({balanceSymbol})</span>
-                  <span> Your Balance: {userBalance} {balanceSymbol}</span>
+                  <span>
+                    {" "}
+                    Your Balance: {userBalance} {balanceSymbol}
+                  </span>
                 </label>
                 <div className="relative">
                   <input
